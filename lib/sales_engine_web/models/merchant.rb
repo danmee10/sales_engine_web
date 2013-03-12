@@ -1,3 +1,5 @@
+require './lib/sales_engine_web/models/database'
+
 module SalesEngineWeb
   class Merchant
     attr_reader :id, :name
@@ -8,37 +10,43 @@ module SalesEngineWeb
     end
 
     def self.create(params)
-      merchant = Merchant.new(params)
-      merchants << merchant
-      merchant
+      Merchant.new(params).save
+    end
+
+    def save
+      @id = Merchant.add(self)
+      self
+    end
+
+    def self.add(merchant)
+      merchants.insert(merchant.to_hash)
+    end
+
+    def to_hash
+      { :id => id, :name => name}
     end
 
     def self.find(id)
-      merchants.find{|m| m.id == id.to_i}
+      result = merchants.where(:id => id.to_i).limit(1).first
+      new(result) if result
     end
 
     def self.find_by_name(name)
-      merchants.find{|m| m.name.downcase == name.downcase}
+      result = merchants.limit(1).where(Sequel.ilike(:name, "%#{name}%")).first
+      new(result) if result
     end
 
     def to_json
       {:id => id, :name => name}.to_json
     end
 
-    def self.random_sequence=(input)
-      @random_sequence = input
-    end
-
-    def self.random_sequence
-      @random_sequence || []
-    end
-
     def self.random
-      merchants.sample
+      result = merchants.to_a.sample
+      new(result) if result
     end
 
     def self.merchants
-      @merchants ||= []
+      Database.merchants
     end
   end
 end
