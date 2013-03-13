@@ -36,7 +36,34 @@ module SalesEngineWeb
       new(result) if result
     end
 
-    def to_json
+    def self.find_all_by_name(name)
+      results = merchants.where(Sequel.ilike(:name, "%#{name}%"))
+      if results
+        results.collect do |result|
+          Merchant.new(result)
+        end
+      end
+    end
+
+    def find_items
+      results = Database.items.where(:merchant_id => id)
+      if results
+        results.collect do |result|
+          Item.new(result)
+        end
+      end
+    end
+
+    def find_invoices
+      results = Database.invoices.where(:merchant_id => id)
+      if results
+        results.collect do |result|
+          Invoice.new(result)
+        end
+      end
+    end
+
+    def to_json(*args)
       {:id => id, :name => name}.to_json
     end
 
